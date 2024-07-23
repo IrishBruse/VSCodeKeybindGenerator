@@ -6,13 +6,14 @@ type OS = "linux" | "macos" | "windows";
 let useWindowsAsBase = true;
 let useCustomKeybinds = true;
 let useExtenstionNegativeKeybinds = true;
+let useNegativeKeybinds = true;
 
 function Generate(negative: string, os: OS) {
-  let negativeKeybinds: Keybind[] = JSON.parse(
-    fs.readFileSync(negative).toString()
-  );
+  const keybinds: Keybind[] = [];
 
-  const keybinds = [...negativeKeybinds];
+  if (useNegativeKeybinds) {
+    keybinds.push(...loadConfig("defaultKeybinds/" + negative));
+  }
 
   if (useWindowsAsBase) {
     keybinds.push(...loadConfig("defaultKeybinds/windows.keybindings.json"));
@@ -58,9 +59,9 @@ function loadConfig(path: string): Keybind[] {
   return JSON.parse(fs.readFileSync(path).toString());
 }
 
-Generate("defaultKeybinds/linux.negative.keybindings.json", "linux");
-Generate("defaultKeybinds/macos.negative.keybindings.json", "macos");
-Generate("defaultKeybinds/windows.negative.keybindings.json", "windows");
+Generate("linux.negative.keybindings.json", "linux");
+Generate("macos.negative.keybindings.json", "macos");
+Generate("windows.negative.keybindings.json", "windows");
 
 type Keybind = {
   key: string;
