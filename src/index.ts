@@ -1,71 +1,74 @@
-import * as YAML from "yaml";
-import * as fs from "fs";
+import * as fs from 'fs'
+import custom from '../custom'
 
-type OS = "linux" | "macos" | "windows";
+type OS = 'linux' | 'macos' | 'windows'
 
-let useWindowsAsBase = true;
-let useCustomKeybinds = true;
-let useExtenstionNegativeKeybinds = true;
-let useNegativeKeybinds = true;
+let useWindowsAsBase = true
+let useCustomKeybinds = true
+let useExtenstionNegativeKeybinds = true
+let useNegativeKeybinds = true
 
 function Generate(negative: string, os: OS) {
-  const keybinds: Keybind[] = [];
+    let keybinds: Keybind[] = []
 
-  if (useNegativeKeybinds) {
-    keybinds.push(...loadConfig("defaultKeybinds/" + negative));
-  }
+    if (useWindowsAsBase) {
+        keybinds.push(...loadConfig('defaultKeybinds/windows.keybindings.json'))
+    }
 
-  if (useWindowsAsBase) {
-    keybinds.push(...loadConfig("defaultKeybinds/windows.keybindings.json"));
-  }
+    if (useCustomKeybinds) {
+        const customMappings = custom.map((k) => {
+            k.key = k.key.replace('^+', 'ctrl+').replace('^+', 'ctrl+')
+            return k
+        })
+        keybinds.push(...customMappings)
+    }
 
-  if (useCustomKeybinds) {
-    const customKeybinds = loadConfig("custom.json").map((v) => {
-      return {
-        key: convertKey(v.key, os),
-        when: v.when,
-        command: v.command,
-        args: v.args,
-      };
-    });
+    if (useExtenstionNegativeKeybinds) {
+        keybinds.push(...loadConfig('defaultKeybinds/extensions.negative.keybinds.json'))
+    }
 
-    keybinds.push(...customKeybinds);
-  }
+    keybinds = keybinds.map((v) => {
+        return {
+            key: convertKey(v.key, os),
+            when: v.when,
+            command: v.command,
+            args: v.args,
+        }
+    })
 
-  if (useExtenstionNegativeKeybinds) {
-    keybinds.push(
-      ...loadConfig("defaultKeybinds/extensions.negative.keybinds.json")
-    );
-  }
+    if (useNegativeKeybinds) {
+        keybinds.push(...loadConfig('defaultKeybinds/' + negative))
+    }
 
-  if (os === "linux") {
-    fs.writeFileSync(
-      "/home/econn/.config/Code/User/keybindings.json",
-      JSON.stringify(keybinds, null, 4)
-    );
-  }
+    if (process.platform === 'linux' && os === 'linux') {
+        fs.writeFileSync('/home/econn/.config/Code/User/keybindings.json', JSON.stringify(keybinds, null, 4))
+    }
 
-  fs.writeFileSync(os + ".keyboard.json", JSON.stringify(keybinds, null, 4));
+    if (process.platform === 'darwin' && os === 'macos') {
+        fs.writeFileSync('/Users/econneely/Library/Application Support/Code/User/keybindings.json', JSON.stringify(keybinds, null, 4))
+    }
+
+    fs.writeFileSync(os + '.keyboard.json', JSON.stringify(keybinds, null, 4))
 }
 
 function convertKey(key: string, platform: OS) {
-  if (platform === "macos") {
-    return key.replace("ctrl+", "cmd+");
-  }
-  return key;
+    if (platform === 'macos') {
+        return key.replace('ctrl+', 'cmd+').replace('ctrl+', 'cmd+')
+    }
+    return key
 }
 
 function loadConfig(path: string): Keybind[] {
-  return JSON.parse(fs.readFileSync(path).toString());
+    return JSON.parse(fs.readFileSync(path).toString())
 }
 
-Generate("linux.negative.keybindings.json", "linux");
-Generate("macos.negative.keybindings.json", "macos");
-Generate("windows.negative.keybindings.json", "windows");
+Generate('linux.negative.keybindings.json', 'linux')
+Generate('macos.negative.keybindings.json', 'macos')
+Generate('windows.negative.keybindings.json', 'windows')
 
-type Keybind = {
-  key: string;
-  command: string;
-  when: string;
-  args: { [key: string]: any } | string;
-};
+export type Keybind = {
+    key: string
+    command: string
+    when?: string
+    args?: { [key: string]: any } | string
+}
