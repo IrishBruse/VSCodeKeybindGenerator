@@ -433,5 +433,14 @@
         "key": "up",
         "command": "-interactive.history.previous",
         "when": "!suggestWidgetVisible && activeEditor == 'workbench.editor.repl' && interactiveInputCursorAtBoundary != 'bottom' && interactiveInputCursorAtBoundary != 'none'"
+    },
+    {
+        "key": "shift+cmd+v",
+        "command": "-aws.previewStateMachine",
+        "when": "editorTextFocus && isCloud9 && editorLangId == 'asl' || editorTextFocus && isCloud9 && editorLangId == 'asl-yaml' || editorTextFocus && !aws.isWebExtHost && editorLangId == 'asl' || editorTextFocus && !aws.isWebExtHost && editorLangId == 'asl-yaml'"
+    },
+    {
+        "key": "cmd+i",
+        "command": "-supermaven.editWithSupermaven"
     }
 ]

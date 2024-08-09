@@ -18,6 +18,8 @@ export type Keybind = {
     command: string
     when?: string
     args?: { [key: string]: any } | string
+
+    disabled?: boolean
 }
 
 function Generate(outputFile: string) {
@@ -27,7 +29,7 @@ function Generate(outputFile: string) {
     keybinds.push(...loadConfig('defaultKeybinds/' + os + ".negative.keybindings.json"))
 
     keybinds.push({ "comment": "Default Keybinds" })
-    keybinds.push(...defaults.map(replaceKey))
+    keybinds.push(...defaults.map(replaceKey).filter(x => !x.disabled))
 
     keybinds.push({ "comment": "Remove Keybinds" })
     keybinds.push(...removals)
