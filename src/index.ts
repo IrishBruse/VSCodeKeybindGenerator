@@ -1,70 +1,17 @@
 import * as fs from 'fs'
-import custom from '../custom'
+import custom from './custom'
+import defaults from './defaults'
+import removals from './removals'
 
 type OS = 'linux' | 'macos' | 'windows'
 
-let useWindowsAsBase = true
-let useCustomKeybinds = true
-let useExtenstionNegativeKeybinds = true
-let useNegativeKeybinds = true
+const os: OS = process.platform === "darwin" ? "macos" : "linux"
 
-function Generate(negative: string, os: OS) {
-    let keybinds: Keybind[] = []
+type Group = { comment: string }
 
-    if (useWindowsAsBase) {
-        keybinds.push(...loadConfig('defaultKeybinds/windows.keybindings.json'))
-    }
-
-    if (useCustomKeybinds) {
-        const customMappings = custom.map((k) => {
-            k.key = k.key.replace('^+', 'ctrl+').replace('^+', 'ctrl+')
-            return k
-        })
-        keybinds.push(...customMappings)
-    }
-
-    if (useExtenstionNegativeKeybinds) {
-        keybinds.push(...loadConfig('defaultKeybinds/extensions.negative.keybinds.json'))
-    }
-
-    keybinds = keybinds.map((v) => {
-        return {
-            key: convertKey(v.key, os),
-            when: v.when,
-            command: v.command,
-            args: v.args,
-        }
-    })
-
-    if (useNegativeKeybinds) {
-        keybinds.push(...loadConfig('defaultKeybinds/' + negative))
-    }
-
-    if (process.platform === 'linux' && os === 'linux') {
-        fs.writeFileSync('/home/econn/.config/Code/User/keybindings.json', JSON.stringify(keybinds, null, 4))
-    }
-
-    if (process.platform === 'darwin' && os === 'macos') {
-        fs.writeFileSync('/Users/econneely/Library/Application Support/Code/User/keybindings.json', JSON.stringify(keybinds, null, 4))
-    }
-
-    fs.writeFileSync(os + '.keyboard.json', JSON.stringify(keybinds, null, 4))
+function isGroup(pet: Keybind | Group): pet is Group {
+    return (pet as Group).comment !== undefined;
 }
-
-function convertKey(key: string, platform: OS) {
-    if (platform === 'macos') {
-        return key.replace('ctrl+', 'cmd+').replace('ctrl+', 'cmd+')
-    }
-    return key
-}
-
-function loadConfig(path: string): Keybind[] {
-    return JSON.parse(fs.readFileSync(path).toString())
-}
-
-Generate('linux.negative.keybindings.json', 'linux')
-Generate('macos.negative.keybindings.json', 'macos')
-Generate('windows.negative.keybindings.json', 'windows')
 
 export type Keybind = {
     key: string
@@ -72,3 +19,99 @@ export type Keybind = {
     when?: string
     args?: { [key: string]: any } | string
 }
+
+function Generate(outputFile: string) {
+    let keybinds: (Keybind | Group)[] = []
+
+    keybinds.push({ "comment": "Remove default os keybinds" })
+    keybinds.push(...loadConfig('defaultKeybinds/' + os + ".negative.keybindings.json"))
+
+    keybinds.push({ "comment": "Default Keybinds" })
+    keybinds.push(...defaults.map(replaceKey))
+
+    keybinds.push({ "comment": "Remove Keybinds" })
+    keybinds.push(...removals)
+
+    keybinds.push({ "comment": "Remove Extensions Keybinds" })
+    keybinds.push(...loadConfig('defaultKeybinds/extensions.negative.keybinds.json'))
+
+    keybinds.push({ "comment": "Custom Keybinds" })
+    keybinds.push(...custom.map(replaceKey))
+
+    writeShortcuts(outputFile, keybinds)
+}
+
+function replaceKey(k: Keybind) {
+    if (os === "macos") {
+        k.key = k.key.replace('^+', 'cmd+').replace('^+', 'cmd+')
+    } else {
+        k.key = k.key.replace('^+', 'ctrl+').replace('^+', 'ctrl+')
+    }
+
+    return k
+}
+
+function writeShortcuts(path: string, keybinds: (Keybind | Group)[]) {
+    var logger = fs.createWriteStream(path, {
+
+    })
+
+    logger.write("[\n")
+    for (let i = 0; i < keybinds.length; i++) {
+        const keybind = keybinds[i]
+
+        if (isGroup(keybind)) {
+            logger.write(`\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n`)
+            logger.write(`\t//\t\t\t${keybind.comment}\n`)
+            logger.write(`\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n`)
+            continue
+        }
+
+        let key = `"key": ${JSON.stringify(keybind.key)},`.padEnd(38)
+        let command = `"command": ${JSON.stringify(keybind.command)}`
+        let when = `"when": ${JSON.stringify(keybind.when)}`
+
+        logger.write("\t{\n")
+        logger.write(`\t\t${key} ${command}`)
+
+        if (!keybind.when && keybind.command[0] !== "-") {
+            console.error(keybind);
+        }
+
+        if (keybind.args) {
+            logger.write(",\n")
+            if (typeof keybind.args === 'string') {
+                logger.write(`\t\t"args": ${JSON.stringify(keybind.args)}`)
+            } else {
+                logger.write(`\t\t"args": {\n`)
+                const args = Object.entries(keybind.args);
+                for (let i = 0; i < args.length; i++) {
+                    const [key, value] = args[i]
+
+                    let val = JSON.stringify(value, null, 4);
+                    val = val.replace(/\n/gi, "\n\t\t\t")
+
+                    logger.write(`\t\t\t"${key}": ${val}`)
+                    if (i < args.length - 1) {
+                        logger.write(`,`)
+                    }
+                    logger.write(`\n`)
+                }
+                logger.write(`\t\t}`)
+            }
+        }
+
+        if (keybind.when) {
+            logger.write(",\n")
+            logger.write(`\t\t${when}\n`)
+        }
+        logger.write("\t}" + (i < keybinds.length - 1 ? "," : "") + "\n")
+    }
+    logger.write("]\n")
+}
+
+function loadConfig(path: string): Keybind[] {
+    return JSON.parse(fs.readFileSync(path).toString())
+}
+
+Generate("/Users/econneely/Library/Application Support/Code/User/keybindings.json")
