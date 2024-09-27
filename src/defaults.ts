@@ -4031,6 +4031,7 @@ export default [
     command: "workbench.action.openRecent",
   },
   {
+    disabled: true,
     key: "^+,",
     command: "workbench.action.openSettings",
   },

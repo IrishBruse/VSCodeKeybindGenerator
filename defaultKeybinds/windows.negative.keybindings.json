@@ -740,7 +740,7 @@
   { "key": "ctrl+alt+pageup", "command": "-editor.action.accessibleViewPreviousCodeBlock",
     "when": "accessibleViewContainsCodeBlocks && accessibleViewCurrentProviderId == 'panelChat'" },
   { "key": "ctrl+k ctrl+k", "command": "-editor.action.defineKeybinding",
-    "when": "resource == 'vscode-userdata:/d%3A/a/vs-code-default-keybindings/vs-code-default-keybindings/scripts/get_default_keybindings/empty2/User/keybindings.json'" },
+    "when": "resource == 'vscode-userdata:/d%3A/a/vs-code-default-keybindings/vs-code-default-keybindings/scripts/get_default_keybindings/empty2/User/keybindings.json'"; },
   { "key": "tab", "command": "-editor.action.inlineSuggest.commit",
     "when": "inlineSuggestionHasIndentationLessThanTabSize && inlineSuggestionVisible && !editorHoverFocused && !editorTabMovesFocus && !suggestWidgetVisible" },
   { "key": "shift+f9", "command": "-editor.debug.action.toggleInlineBreakpoint",

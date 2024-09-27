@@ -194,9 +194,15 @@ export default [
     args: { text: "\u0003" },
   },
   {
-    when: "editorText",
+    when: "terminalFocus",
     key: "^+alt+left",
     command: "workbench.action.terminal.sendSequence",
     args: { text: "\u001b[1;5D" },
+  },
+  {
+    when: "terminalFocus",
+    key: "^+r",
+    command: "workbench.action.terminal.sendSequence",
+    args: { text: "\u0012" },
   },
 ] as Keybind[];

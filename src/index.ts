@@ -9,8 +9,8 @@ const os: OS = process.platform === "darwin" ? "macos" : "linux";
 
 type Group = { comment: string };
 
-function isGroup(pet: Keybind | Group): pet is Group {
-  return (pet as Group).comment !== undefined;
+function isGroup(value: Keybind | Group): value is Group {
+  return (value as Group).comment !== undefined;
 }
 
 export type Keybind = {
@@ -28,11 +28,11 @@ function Generate(outputFile: string) {
   keybinds.push({ comment: "Remove default os keybinds" });
   keybinds.push(...loadConfig("defaultKeybinds/" + os + ".negative.keybindings.json"));
 
-  keybinds.push({ comment: "Default Keybinds" });
-  keybinds.push(...defaults.map(replaceKey).filter((x) => !x.disabled));
-
   keybinds.push({ comment: "Remove Keybinds" });
   keybinds.push(...removals);
+
+  keybinds.push({ comment: "Default Keybinds" });
+  keybinds.push(...defaults.map(replaceKey).filter((x) => !x.disabled));
 
   keybinds.push({ comment: "Custom Keybinds" });
   keybinds.push(...custom.map(replaceKey));
@@ -110,6 +110,8 @@ function writeShortcuts(path: string, keybinds: (Keybind | Group)[]) {
 function loadConfig(path: string): Keybind[] {
   return JSON.parse(fs.readFileSync(path).toString());
 }
+
+// Generate("./gen.json");
 
 if (os == "macos") {
   Generate("/Users/econneely/Library/Application Support/Code/User/keybindings.json");
