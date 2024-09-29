@@ -3537,6 +3537,7 @@ export default [
     command: "workbench.action.closeActiveEditor",
   },
   {
+    disabled: true,
     key: "^+f4",
     command: "workbench.action.closeActiveEditor",
   },
@@ -4119,6 +4120,7 @@ export default [
     when: "inQuickOpen && inRecentFilesPicker",
   },
   {
+    disabled: true,
     key: "^+shift+q",
     command: "workbench.action.quickOpenNavigatePreviousInViewPicker",
     when: "inQuickOpen && inViewsPicker",

@@ -205,4 +205,17 @@ export default [
     command: "workbench.action.terminal.sendSequence",
     args: { text: "\u0012" },
   },
+  {
+    key: "^+q",
+    command: "git.openChange",
+    when: "editorFocus && !isInDiffEditor",
+  },
+  {
+    key: "^+q",
+    command: "runCommands",
+    args: {
+      commands: ["workbench.action.closeActiveEditor", "git.openFile"],
+    },
+    when: "editorFocus && isInDiffEditor",
+  },
 ] as Keybind[];
